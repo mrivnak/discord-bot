@@ -105,7 +105,7 @@ func createRoleMessages(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	if m.Content == ";create-role-messages" {
-		config, err := readFromJson[Config]("config/config/config.json")
+		config, err := readFromJson[Config]("config/config.json")
 		if err != nil {
 			fmt.Println("error reading config,", err)
 			return
