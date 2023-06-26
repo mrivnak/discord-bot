@@ -105,14 +105,14 @@ func createRoleMessages(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	if m.Content == ";create-role-messages" {
-		config, err := readFromJson[Config]("config.json")
+		config, err := readFromJson[Config]("config/config/config.json")
 		if err != nil {
 			fmt.Println("error reading config,", err)
 			return
 		} else {
 			fmt.Println("config loaded")
 		}
-		rolesConfig, err := readFromJson[RolesConfig]("roles.json")
+		rolesConfig, err := readFromJson[RolesConfig]("config/roles.json")
 		if err != nil {
 			fmt.Println("error reading roles config,", err)
 			return
@@ -139,7 +139,7 @@ func createRoleMessages(s *discordgo.Session, m *discordgo.MessageCreate) {
 			}
 		}
 
-		err = saveJsonToFile("roles.json", rolesConfig)
+		err = saveJsonToFile("config/roles.json", rolesConfig)
 		if err != nil {
 			fmt.Println("error saving roles config,", err)
 			return
@@ -148,18 +148,32 @@ func createRoleMessages(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 
 		// TODO: add reactions to messages
+		for _, roleMessage := range rolesConfig.Items {
+			for _, role := range roleMessage.Roles {
+				fmt.Println("adding reaction " + role.Emoji + " to message " + roleMessage.MessageID)
+				err := s.MessageReactionAdd(config.RolesChannelID, roleMessage.MessageID, role.Emoji)
+				if err != nil {
+					fmt.Println("error adding reaction,", err)
+					return
+				}
+			}
+		}
 	}
 }
 
 func rolesAddHandler(s *discordgo.Session, m *discordgo.MessageReactionAdd) {
+	if m.UserID == s.State.User.ID {
+		return
+	}
+
 	fmt.Println("reaction added")
 
-	config, err := readFromJson[Config]("config.json")
+	config, err := readFromJson[Config]("config/config.json")
 	if err != nil {
 		fmt.Println("error reading config,", err)
 		return
 	}
-	rolesConfig, err := readFromJson[RolesConfig]("roles.json")
+	rolesConfig, err := readFromJson[RolesConfig]("config/roles.json")
 	if err != nil {
 		fmt.Println("error reading roles config,", err)
 		return
@@ -198,14 +212,18 @@ func rolesAddHandler(s *discordgo.Session, m *discordgo.MessageReactionAdd) {
 }
 
 func rolesRemoveHandler(s *discordgo.Session, m *discordgo.MessageReactionRemove) {
+	if m.UserID == s.State.User.ID {
+		return
+	}
+
 	fmt.Println("reaction removed")
 
-	config, err := readFromJson[Config]("config.json")
+	config, err := readFromJson[Config]("config/config.json")
 	if err != nil {
 		fmt.Println("error reading config,", err)
 		return
 	}
-	rolesConfig, err := readFromJson[RolesConfig]("roles.json")
+	rolesConfig, err := readFromJson[RolesConfig]("config/roles.json")
 	if err != nil {
 		fmt.Println("error reading roles config,", err)
 		return
